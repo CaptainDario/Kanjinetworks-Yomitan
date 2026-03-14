@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 import argparse
 
@@ -11,7 +11,7 @@ from kanjinetworks import JapaneseApp3Exporter, JapaneseApp4Exporter
 #     for line in text.split('\n'):
 #         if not len(line):
 #             number_of_empty_lines = number_of_empty_lines + 1
-#     print "number_of_empty_lines %s" % number_of_empty_lines
+#     print("number_of_empty_lines %s" % number_of_empty_lines)
 
 if __name__ == "__main__":
 
@@ -25,12 +25,12 @@ if __name__ == "__main__":
 
     kanjis = KanjiNetworksParser().parse(text, split_shinjitai=True)
     # for kanji in kanjis:
-    #     print unicode(kanji)
-    print "imported %s kanjis" % len(kanjis)
+    #     print(str(kanji))
+    print("imported %s kanjis" % len(kanjis))
 
-    if args.version is 3:
-        print "exporting to version 3 ..."
+    if args.version == 3:
+        print("exporting to version 3 ...")
         JapaneseApp3Exporter().replace_notes_in_file(args.filename, kanjis)
-    if args.version is 4:
-        print "exporting to version 4 ..."
+    if args.version == 4:
+        print("exporting to version 4 ...")
         JapaneseApp4Exporter().replace_notes_in_file(args.filename, kanjis)

@@ -110,7 +110,7 @@ if __name__ == "__main__":
     knparser = KanjiNetworksParser()
     kanjis = knparser.parse(args.text)
     for kanji in kanjis:
-        print unicode(kanji)
+        print(str(kanji))
 
 import unittest
 

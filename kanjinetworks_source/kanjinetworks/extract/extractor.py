@@ -1,8 +1,7 @@
-import codecs
 import os
 import re
 
-from cStringIO import StringIO
+from io import StringIO
 from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
 from pdfminer.converter import TextConverter
 from pdfminer.layout import LAParams
@@ -18,10 +17,9 @@ pdf_range = range(7, 569)
 def get_text_from_pdf(path, pagenos=set()):
     rsrcmgr = PDFResourceManager()
     retstr = StringIO()
-    codec = 'utf-8'
     laparams = LAParams()
-    device = TextConverter(rsrcmgr, retstr, codec=codec, laparams=laparams)
-    fp = file(path, 'rb')
+    device = TextConverter(rsrcmgr, retstr, laparams=laparams)
+    fp = open(path, 'rb')
     interpreter = PDFPageInterpreter(rsrcmgr, device)
 
     for page in PDFPage.get_pages(fp, pagenos, caching=True, check_extractable=True):
@@ -45,21 +43,21 @@ def get_cache_path():
 def get_text(caching=True, sanitize=True, text_cache_path=get_cache_path(), pdf_range=pdf_range):
     if caching:
         if not os.path.isfile(text_cache_path):
-            text = get_text_from_pdf(pdf_path, pagenos=set(pdf_range)).decode('utf-8')
+            text = get_text_from_pdf(pdf_path, pagenos=set(pdf_range))
             if sanitize:
                 text = sanitize_text(text)
-            with codecs.open(text_cache_path, "wb", "utf-8") as text_file:
+            with open(text_cache_path, "w", encoding="utf-8") as text_file:
                 text_file.write(text)
         else:
-            with codecs.open(text_cache_path, "r", "utf-8") as text_file:
+            with open(text_cache_path, "r", encoding="utf-8") as text_file:
                 text = text_file.read()
     else:
-        text = get_text_from_pdf(pdf_path, pagenos=set(pdf_range)).decode('utf-8')
+        text = get_text_from_pdf(pdf_path, pagenos=set(pdf_range))
     return text
 
 if __name__ == "__main__":
     text = get_text()
-    print text
+    print(text)
 
 
 import unittest
@@ -70,7 +68,7 @@ class TestExtractor(unittest.TestCase):
     def test_get_text_no_cache(self):
         text = get_text(caching=False, pdf_range=range(7, 8))
         self.assertNotEqual(len(text), 0)
-        self.assertIsInstance(text, unicode)
+        self.assertIsInstance(text, str)
 
     def test_get_text_cache(self):
 
@@ -80,10 +78,10 @@ class TestExtractor(unittest.TestCase):
 
         text = get_text(caching=True, text_cache_path=temp_path, pdf_range=range(7, 8))
         self.assertNotEqual(len(text), 0)
-        self.assertIsInstance(text, unicode)
+        self.assertIsInstance(text, str)
 
         text = get_text(caching=True, text_cache_path=temp_path, pdf_range=range(7, 8))
         self.assertNotEqual(len(text), 0)
-        self.assertIsInstance(text, unicode)
+        self.assertIsInstance(text, str)
 
         os.unlink(temp_path)

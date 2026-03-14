@@ -8,7 +8,9 @@ class Kanji():
         self.kanji_shinjitai = None
         self.strokes_shinjitai = 0
 
-    def __unicode__(self):
+    def __str__(self):
+        ks = ""
+        ss = ""
         if self.kanji_shinjitai:
             ks = " (%s)" % self.kanji_shinjitai
         if self.strokes_shinjitai:

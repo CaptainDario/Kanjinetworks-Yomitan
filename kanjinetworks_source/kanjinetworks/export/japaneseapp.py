@@ -16,7 +16,7 @@ class JapaneseAppBaseExporter:
 
         d = json.loads(contents)
         d["notes"] = self.kanjis_to_notes(kanjis)
-        contents = json.dumps(d)
+        contents = json.dumps(d).encode('utf-8')
 
         with gzip.GzipFile(path, "wb") as file:
             file.write(contents)
@@ -77,18 +77,18 @@ class TestJapaneseApp3Exporter(unittest.TestCase):
             self.assertIsInstance(notes, dict)
 
             self.assertIsInstance(notes["33373"], dict)
-            self.assertIsInstance(notes["33373"]["updatedAt"], unicode)
-            self.assertIsInstance(notes["33373"]["text"], unicode)
+            self.assertIsInstance(notes["33373"]["updatedAt"], str)
+            self.assertIsInstance(notes["33373"]["text"], str)
             self.assertTrue(len(notes["33373"]["updatedAt"]))
             self.assertTrue(len(notes["33373"]["text"]))
 
             self.assertIsInstance(notes["36684"], dict)
-            self.assertIsInstance(notes["36684"]["updatedAt"], unicode)
-            self.assertIsInstance(notes["36684"]["text"], unicode)
+            self.assertIsInstance(notes["36684"]["updatedAt"], str)
+            self.assertIsInstance(notes["36684"]["text"], str)
 
             self.assertIsInstance(notes["33826"], dict)
-            self.assertIsInstance(notes["33826"]["updatedAt"], unicode)
-            self.assertIsInstance(notes["33826"]["text"], unicode)
+            self.assertIsInstance(notes["33826"]["updatedAt"], str)
+            self.assertIsInstance(notes["33826"]["text"], str)
 
 
 class TestJapaneseApp4Exporter(unittest.TestCase):
@@ -111,25 +111,25 @@ class TestJapaneseApp4Exporter(unittest.TestCase):
         self.assertIsInstance(notes, list)
 
         self.assertIsInstance(notes[0], dict)
-        self.assertIsInstance(notes[0]["id"], unicode)
-        self.assertIsInstance(notes[0]["updatedAt"], unicode)
-        self.assertIsInstance(notes[0]["text"], unicode)
-        self.assertEquals(notes[0]["id"], "33373")
+        self.assertIsInstance(notes[0]["id"], str)
+        self.assertIsInstance(notes[0]["updatedAt"], str)
+        self.assertIsInstance(notes[0]["text"], str)
+        self.assertEqual(notes[0]["id"], "33373")
         self.assertTrue(len(notes[0]["updatedAt"]))
         self.assertTrue(len(notes[0]["text"]))
 
         self.assertIsInstance(notes[1], dict)
-        self.assertIsInstance(notes[1]["id"], unicode)
-        self.assertIsInstance(notes[1]["updatedAt"], unicode)
-        self.assertIsInstance(notes[1]["text"], unicode)
-        self.assertEquals(notes[1]["id"], "36684")
+        self.assertIsInstance(notes[1]["id"], str)
+        self.assertIsInstance(notes[1]["updatedAt"], str)
+        self.assertIsInstance(notes[1]["text"], str)
+        self.assertEqual(notes[1]["id"], "36684")
         self.assertTrue(len(notes[1]["updatedAt"]))
         self.assertTrue(len(notes[1]["text"]))
 
         self.assertIsInstance(notes[2], dict)
-        self.assertIsInstance(notes[2]["id"], unicode)
-        self.assertIsInstance(notes[2]["updatedAt"], unicode)
-        self.assertIsInstance(notes[2]["text"], unicode)
-        self.assertEquals(notes[2]["id"], "33826")
+        self.assertIsInstance(notes[2]["id"], str)
+        self.assertIsInstance(notes[2]["updatedAt"], str)
+        self.assertIsInstance(notes[2]["text"], str)
+        self.assertEqual(notes[2]["id"], "33826")
         self.assertTrue(len(notes[2]["updatedAt"]))
         self.assertTrue(len(notes[2]["text"]))
