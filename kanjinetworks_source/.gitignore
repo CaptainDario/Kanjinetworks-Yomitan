@@ -39,3 +39,6 @@ virtualenv
 venv
 
 .idea
+
+# conversion cache
+kanjinetworks/data/*.txt
