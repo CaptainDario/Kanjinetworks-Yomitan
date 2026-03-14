@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "kanjinetworks",
+    "pdfminer.six>=20260107",
 ]
 
 [tool.uv.sources]
