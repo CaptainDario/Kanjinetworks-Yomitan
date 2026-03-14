@@ -5,7 +5,7 @@ import datetime
 
 from kanjinetworks import get_text, KanjiNetworksParser
 
-from pdfminer.high_level import extract_text
+from pypdf import PdfReader, PdfWriter
 import os
 
 
@@ -23,17 +23,27 @@ index_metadata = {
     }
 
 
+def extract_and_save_intro(pdf_path, intro_pdf_file):
+    """Extracts the first 7 pages of the source PDF into a new PDF file."""
+    if not os.path.exists(pdf_path):
+        print(f"Warning: PDF not found at '{pdf_path}'. Cannot create introduction PDF.")
+        return
 
-def extract_and_save_intro(pdf_path, intro_file):
+    print(f"Extracting first 7 pages from '{pdf_path}' to '{intro_pdf_file}'...")
+    try:
+        reader = PdfReader(pdf_path)
+        writer = PdfWriter()
 
-    # pdfminer uses 0-based indexing for pages.
-    target_pages = [0, 1, 2, 3, 4, 5, 6]
-    intro_text = extract_text(pdf_path, page_numbers=target_pages)
-    
-    with open(intro_file, 'w', encoding='utf-8') as f:
-        f.write(intro_text.strip())
-        
-    print(f"Introduction saved to '{intro_file}'.")
+        # Extract pages 1-7 (index 0 to 6)
+        for page_num in range(min(7, len(reader.pages))):
+            writer.add_page(reader.pages[page_num])
+
+        with open(intro_pdf_file, "wb") as f:
+            writer.write(f)
+            
+        print(f"Introduction PDF saved to '{intro_pdf_file}'.")
+    except Exception as e:
+        print(f"Failed to create introduction PDF: {e}")
 
 def build_kanji_bank(kanjis):
     """Formats parsed objects into Yomitan v3 kanji schema."""
