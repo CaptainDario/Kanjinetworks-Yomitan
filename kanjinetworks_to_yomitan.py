@@ -46,51 +46,72 @@ def extract_and_save_intro(pdf_path, intro_pdf_file):
         print(f"Failed to create introduction PDF: {e}")
 
 def build_kanji_bank(kanjis):
-    """Formats parsed objects into Yomitan v3 kanji schema."""
+    """Formats parsed Kanji objects into Yomitan v3 kanji schema."""
     kanji_bank = []
     
     for obj in kanjis:
         if isinstance(obj, dict):
             char = obj.get('kanji') or obj.get('character', "")
-            etym = obj.get('etymology') or obj.get('meaning', str(obj))
+            definition = obj.get('definition') or obj.get('etymology') or obj.get('meaning', str(obj))
         else:
             char = getattr(obj, 'kanji', getattr(obj, 'character', ""))
-            etym = getattr(obj, 'etymology', getattr(obj, 'meaning', str(obj)))
+            definition = getattr(obj, 'definition', None) or getattr(obj, 'etymology', None) or str(obj)
 
         if not char:
             continue
 
         # Yomitan format: [character, onyomi, kunyomi, tags, meanings, stats]
-        kanji_bank.append([char, "", "", "etymology", [etym], {}])
+        kanji_bank.append([char, "", "", "etymology", [definition], {}])
         
     return kanji_bank
 
-def save_yomitan_dictionary(kanji_bank, output_dir):
-    """Writes index and bank JSONs, then packages them into a Zip file."""
+def verify_kanji_bank(bank_file):
+    """Reads back the written kanji bank JSON and prints a quick sanity check."""
+    try:
+        with open(bank_file, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        total = len(data)
+        empty_def = sum(1 for e in data if not e[4] or not e[4][0])
+        print(f"Kanji bank verification — total entries: {total}, entries with empty definition: {empty_def}")
+        print("  Sample entries:")
+        for entry in data[:3]:
+            char, _, _, _, meanings, _ = entry
+            snippet = (meanings[0] or "")[:120].replace('\n', ' ')
+            print(f"    {char}: {snippet}")
+    except Exception as e:
+        print(f"Kanji bank verification failed: {e}")
+
+def save_yomitan_dictionary(kanji_bank, tmp_dir, output_dir):
+    """Writes index and bank JSONs to tmp/, then packages them into a Zip in out/."""
     output_zip = f"{output_dir}/KanjiNetworks_Yomitan.zip"
-    index_file = f"{output_dir}/index.json"
-    bank_file  = f"{output_dir}/kanji_bank_1.json"
+    index_file = f"{tmp_dir}/index.json"
+    bank_file  = f"{tmp_dir}/kanji_bank_1.json"
 
     try:
-        # Write uncompressed files for debugging
+        os.makedirs(tmp_dir, exist_ok=True)
+        os.makedirs(output_dir, exist_ok=True)
+
+        # Write uncompressed files to tmp/ for debugging
         with open(index_file, 'w', encoding='utf-8') as f:
             json.dump(index_metadata, f, ensure_ascii=False, indent=2)
             
         with open(bank_file, 'w', encoding='utf-8') as f:
             json.dump(kanji_bank, f, ensure_ascii=False, separators=(',', ':'))
 
-        # Archive files
+        verify_kanji_bank(bank_file)
+
+        # Archive files into the output directory
         with zipfile.ZipFile(output_zip, 'w', zipfile.ZIP_DEFLATED) as zipf:
             zipf.write(index_file, arcname='index.json')
             zipf.write(bank_file, arcname='kanji_bank_1.json')
             
         print(f"Exported {len(kanji_bank)} entries to '{output_zip}'.")
-        print(f"Uncompressed JSON files retained in '{output_dir}/' for debugging.")
+        print(f"Uncompressed JSON files retained in '{tmp_dir}/' for debugging.")
         
     except IOError as e:
         sys.exit(f"Failed to write output files: {e}")
 
-def main(output_dir="out"):
+def main(tmp_dir="tmp", output_dir="out"):
     print("Fetching and parsing Kanji Networks PDF...")
 
     text = get_text()
@@ -99,11 +120,12 @@ def main(output_dir="out"):
     if not kanjis:
         sys.exit("Error: No kanji found in the parsed text.")
 
-    extract_and_save_intro(PDF_PATH, f"{output_dir}/introduction.txt")
+    os.makedirs(output_dir, exist_ok=True)
+    extract_and_save_intro(PDF_PATH, f"{output_dir}/introduction.pdf")
     
     kanji_bank = build_kanji_bank(kanjis)
     
-    save_yomitan_dictionary(kanji_bank, output_dir)
+    save_yomitan_dictionary(kanji_bank, tmp_dir, output_dir)
 
 if __name__ == '__main__':
     main()
