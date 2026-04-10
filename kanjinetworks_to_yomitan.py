@@ -2,6 +2,7 @@ import json
 import zipfile
 import sys
 import datetime
+import shutil
 
 from kanjinetworks import get_text, KanjiNetworksParser
 
@@ -26,7 +27,7 @@ index_metadata = {
 def extract_and_save_intro(pdf_path, intro_pdf_file):
     """Extracts the first 7 pages of the source PDF into a new PDF file."""
     if not os.path.exists(pdf_path):
-        print(f"Warning: PDF not found at '{pdf_path}'. Cannot create introduction PDF.")
+        print(f"Warning: PDF not found at '{pdf_path}'. Cannot create manual PDF.")
         return
 
     print(f"Extracting first 7 pages from '{pdf_path}' to '{intro_pdf_file}'...")
@@ -41,9 +42,9 @@ def extract_and_save_intro(pdf_path, intro_pdf_file):
         with open(intro_pdf_file, "wb") as f:
             writer.write(f)
             
-        print(f"Introduction PDF saved to '{intro_pdf_file}'.")
+        print(f"Manual (Introduction) PDF saved to '{intro_pdf_file}'.")
     except Exception as e:
-        print(f"Failed to create introduction PDF: {e}")
+        print(f"Failed to create manual (introduction) PDF: {e}")
 
 def build_kanji_bank(kanjis):
     """Formats parsed Kanji objects into Yomitan v3 kanji schema."""
@@ -83,7 +84,8 @@ def verify_kanji_bank(bank_file):
 
 def save_yomitan_dictionary(kanji_bank, tmp_dir, output_dir):
     """Writes index and bank JSONs to tmp/, then packages them into a Zip in out/."""
-    output_zip = f"{output_dir}/KanjiNetworks_Yomitan.zip"
+    yomitan_zip = f"{output_dir}/KanjiNetworks_Yomitan.zip"
+    dadb_zip   = f"{output_dir}/KanjiNetworks_DaDb.zip"
     index_file = f"{tmp_dir}/index.json"
     bank_file  = f"{tmp_dir}/kanji_bank_1.json"
 
@@ -101,11 +103,15 @@ def save_yomitan_dictionary(kanji_bank, tmp_dir, output_dir):
         verify_kanji_bank(bank_file)
 
         # Archive files into the output directory
-        with zipfile.ZipFile(output_zip, 'w', zipfile.ZIP_DEFLATED) as zipf:
-            zipf.write(index_file, arcname='index.json')
-            zipf.write(bank_file, arcname='kanji_bank_1.json')
+        for z in [yomitan_zip, dadb_zip]:
+            with zipfile.ZipFile(z, 'w', zipfile.ZIP_DEFLATED) as zipf:
+                zipf.write(index_file, arcname='index.json')
+                zipf.write(bank_file, arcname='kanji_bank_1.json')
+                if z == dadb_zip:
+                    zipf.write(f"{tmp_dir}/manual.pdf", arcname='manual.pdf')
+
             
-        print(f"Exported {len(kanji_bank)} entries to '{output_zip}'.")
+        print(f"Exported {len(kanji_bank)} entries to '{yomitan_zip}'/'{dadb_zip}'.")
         print(f"Uncompressed JSON files retained in '{tmp_dir}/' for debugging.")
         
     except IOError as e:
@@ -121,7 +127,7 @@ def main(tmp_dir="tmp", output_dir="out"):
         sys.exit("Error: No kanji found in the parsed text.")
 
     os.makedirs(output_dir, exist_ok=True)
-    extract_and_save_intro(PDF_PATH, f"{output_dir}/introduction.pdf")
+    extract_and_save_intro(PDF_PATH, f"{tmp_dir}/manual.pdf")
     
     kanji_bank = build_kanji_bank(kanjis)
     
