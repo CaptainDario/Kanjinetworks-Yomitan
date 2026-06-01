@@ -11,6 +11,7 @@ import os
 
 
 PDF_PATH = "kanjinetworks_source/kanjinetworks/data/etymologicaldictionaryofhanchinesecharacters-160816005400.pdf"
+MANUAL_ICON_PATH = "data/字-bronze.svg"
 
 index_metadata = {
         "title": "Kanji Networks Etymology",
@@ -109,6 +110,10 @@ def save_yomitan_dictionary(kanji_bank, tmp_dir, output_dir):
                 zipf.write(bank_file, arcname='kanji_bank_1.json')
                 if z == dadb_zip:
                     zipf.write(f"{tmp_dir}/manual.pdf", arcname='manual.pdf')
+                    if os.path.exists(MANUAL_ICON_PATH):
+                        zipf.write(MANUAL_ICON_PATH, arcname='manual_icon.svg')
+                    else:
+                        print(f"Warning: Manual icon not found at '{MANUAL_ICON_PATH}' for DaDb package.")
 
             
         print(f"Exported {len(kanji_bank)} entries to '{yomitan_zip}'/'{dadb_zip}'.")
